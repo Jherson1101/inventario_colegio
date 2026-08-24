@@ -6,7 +6,7 @@ $titulo = $titulo ?? "Sistema de Inventario";
 <html lang="es">
 <link
     rel="stylesheet"
-    href="/inventario_colegio/assets/css/style.css"
+    href="/inventario_colegio/assets/css/style.css?v=20260824"
 >
 
 <script
@@ -28,7 +28,7 @@ $titulo = $titulo ?? "Sistema de Inventario";
 
     <link
         rel="stylesheet"
-        href="/inventario_colegio/assets/css/style.css"
+        href="/inventario_colegio/assets/css/style.css?v=20260824"
     >
 
 </head>

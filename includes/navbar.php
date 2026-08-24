@@ -49,7 +49,7 @@
 
         <li>
             <a href="/inventario_colegio/reportes/inventario.php">
-                📊 Reportes
+                    📊 Reportes
             </a>
         </li>
 

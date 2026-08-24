@@ -10,6 +10,15 @@ require_once "../includes/navbar.php";
 
 
 // =====================================================
+// FILTROS DEL LISTADO
+// =====================================================
+
+$buscar = trim((string) ($_GET["buscar"] ?? ""));
+$filtro_categoria = trim((string) ($_GET["categoria"] ?? ""));
+$filtro_estado = trim((string) ($_GET["estado"] ?? ""));
+$filtro_situacion = trim((string) ($_GET["situacion"] ?? ""));
+
+// =====================================================
 // CONSULTA DE RECURSOS
 // =====================================================
 
@@ -29,7 +38,8 @@ $sql = "
 
         a.nombre AS area,
 
-        u.nombre AS ubicacion
+        u.nombre AS ubicacion,
+        uh.nombre AS ubicacion_habitual
 
     FROM recursos r
 
@@ -42,10 +52,90 @@ $sql = "
     LEFT JOIN ubicaciones u
         ON r.ubicacion_id = u.id
 
-    ORDER BY r.id DESC
+    LEFT JOIN ubicaciones uh
+        ON r.ubicacion_habitual_id = uh.id
 ";
 
-$resultado = $conexion->query($sql);
+$where = [];
+$params = [];
+$types = "";
+
+if ($buscar !== "") {
+    $where[] = "(
+        r.codigo_inventario LIKE ?
+        OR r.descripcion LIKE ?
+        OR r.marca LIKE ?
+        OR r.modelo LIKE ?
+        OR r.numero_serie LIKE ?
+    )";
+
+    $texto_busqueda = "%" . $buscar . "%";
+
+    $params = array_merge($params, [
+        $texto_busqueda,
+        $texto_busqueda,
+        $texto_busqueda,
+        $texto_busqueda,
+        $texto_busqueda
+    ]);
+
+    $types .= "sssss";
+}
+
+if ($filtro_categoria !== "") {
+    $where[] = "c.id = ?";
+    $params[] = $filtro_categoria;
+    $types .= "i";
+}
+
+if ($filtro_estado !== "") {
+    $where[] = "r.estado = ?";
+    $params[] = $filtro_estado;
+    $types .= "s";
+}
+
+if ($filtro_situacion !== "") {
+    $where[] = "r.situacion = ?";
+    $params[] = $filtro_situacion;
+    $types .= "s";
+}
+
+if (!empty($where)) {
+    $sql .= " WHERE " . implode(" AND ", $where);
+}
+
+$sql .= " ORDER BY r.id DESC";
+
+$stmt = $conexion->prepare($sql);
+
+if (!$stmt) {
+    die("Error al preparar la consulta de recursos: " . $conexion->error);
+}
+
+if (!empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
+
+$stmt->execute();
+$resultado = $stmt->get_result();
+$stmt->close();
+
+$estado_clases = [
+    "EXCELENTE" => "badge-excelente",
+    "BUENO" => "badge-bueno",
+    "REGULAR" => "badge-regular",
+    "DEFICIENTE" => "badge-deficiente",
+    "MALOGRADO" => "badge-malogrado",
+    "DADO DE BAJA" => "badge-dado-baja"
+];
+
+$situacion_clases = [
+    "DISPONIBLE" => "badge-disponible",
+    "PRESTADO" => "badge-prestado",
+    "DADO DE BAJA" => "badge-dado-baja",
+    "EN MANTENIMIENTO" => "badge-mantenimiento",
+    "EN USO" => "badge-en-uso"
+];
 
 ?>
 
@@ -83,20 +173,119 @@ $resultado = $conexion->query($sql);
 
     <section class="filter-section">
 
-        <div class="filter-group">
+        <form method="GET" class="filter-grid">
 
-            <label for="buscar">
-                Buscar
-            </label>
+            <div class="filter-group">
 
-            <input
-                type="text"
-                id="buscar"
-                class="form-control"
-                placeholder="Código, descripción, marca, modelo o serie..."
-            >
+                <label for="buscar">
+                    Buscar
+                </label>
 
-        </div>
+                <input
+                    type="text"
+                    id="buscar"
+                    name="buscar"
+                    class="form-control"
+                    value="<?php echo htmlspecialchars($buscar); ?>"
+                    placeholder="Código, descripción, marca, modelo o serie..."
+                >
+
+            </div>
+
+            <div class="filter-group">
+
+                <label for="categoria">
+                    Categoría
+                </label>
+
+                <select
+                    id="categoria"
+                    name="categoria"
+                    class="form-control"
+                >
+                    <option value="">
+                        Todas
+                    </option>
+
+                    <?php
+                    $categorias = $conexion->query(
+                        "SELECT id, nombre FROM categorias WHERE estado = 'ACTIVO' ORDER BY nombre"
+                    );
+
+                    if ($categorias):
+                        while ($categoria = $categorias->fetch_assoc()):
+                    ?>
+                            <option
+                                value="<?php echo (int) $categoria["id"]; ?>"
+                                <?php echo $filtro_categoria === (string) $categoria["id"] ? "selected" : ""; ?>
+                            >
+                                <?php echo htmlspecialchars($categoria["nombre"]); ?>
+                            </option>
+                    <?php
+                        endwhile;
+                    endif;
+                    ?>
+                </select>
+
+            </div>
+
+            <div class="filter-group">
+
+                <label for="estado">
+                    Estado
+                </label>
+
+                <select
+                    id="estado"
+                    name="estado"
+                    class="form-control"
+                >
+                    <option value="">
+                        Todos
+                    </option>
+                    <option value="EXCELENTE" <?php echo $filtro_estado === "EXCELENTE" ? "selected" : ""; ?>>EXCELENTE</option>
+                    <option value="BUENO" <?php echo $filtro_estado === "BUENO" ? "selected" : ""; ?>>BUENO</option>
+                    <option value="REGULAR" <?php echo $filtro_estado === "REGULAR" ? "selected" : ""; ?>>REGULAR</option>
+                    <option value="DEFICIENTE" <?php echo $filtro_estado === "DEFICIENTE" ? "selected" : ""; ?>>DEFICIENTE</option>
+                    <option value="MALOGRADO" <?php echo $filtro_estado === "MALOGRADO" ? "selected" : ""; ?>>MALOGRADO</option>
+                    <option value="DADO DE BAJA" <?php echo $filtro_estado === "DADO DE BAJA" ? "selected" : ""; ?>>DADO DE BAJA</option>
+                </select>
+
+            </div>
+
+            <div class="filter-group">
+
+                <label for="situacion">
+                    Situación
+                </label>
+
+                <select
+                    id="situacion"
+                    name="situacion"
+                    class="form-control"
+                >
+                    <option value="">
+                        Todas
+                    </option>
+                    <option value="DISPONIBLE" <?php echo $filtro_situacion === "DISPONIBLE" ? "selected" : ""; ?>>DISPONIBLE</option>
+                    <option value="PRESTADO" <?php echo $filtro_situacion === "PRESTADO" ? "selected" : ""; ?>>PRESTADO</option>
+                    <option value="DADO DE BAJA" <?php echo $filtro_situacion === "DADO DE BAJA" ? "selected" : ""; ?>>DADO DE BAJA</option>
+                    <option value="EN MANTENIMIENTO" <?php echo $filtro_situacion === "EN MANTENIMIENTO" ? "selected" : ""; ?>>EN MANTENIMIENTO</option>
+                </select>
+
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">
+                    Filtrar
+                </button>
+
+                <a href="index.php" class="btn btn-secondary">
+                    Limpiar
+                </a>
+            </div>
+
+        </form>
 
     </section>
 
@@ -131,11 +320,11 @@ $resultado = $conexion->query($sql);
                         </th>
 
                         <th>
-                            Área
+                            Ubicación actual
                         </th>
 
                         <th>
-                            Ubicación
+                            Ubicación habitual
                         </th>
 
                         <th>
@@ -143,11 +332,11 @@ $resultado = $conexion->query($sql);
                         </th>
 
                         <th>
-                            Estado
+                            Situación
                         </th>
 
                         <th>
-                            Situación
+                            Estado
                         </th>
 
                         <th>
@@ -163,6 +352,14 @@ $resultado = $conexion->query($sql);
                     <?php if ($resultado && $resultado->num_rows > 0): ?>
 
                         <?php while ($recurso = $resultado->fetch_assoc()): ?>
+
+                            <?php
+                            $estado_valor = strtoupper((string) ($recurso["estado"] ?? "BUENO"));
+                            $situacion_valor = strtoupper((string) ($recurso["situacion"] ?? "DISPONIBLE"));
+
+                            $estado_clase = $estado_clases[$estado_valor] ?? "badge-bueno";
+                            $situacion_clase = $situacion_clases[$situacion_valor] ?? "badge-disponible";
+                            ?>
 
                             <tr>
 
@@ -232,7 +429,7 @@ $resultado = $conexion->query($sql);
 
                                     <?php
                                     echo htmlspecialchars(
-                                        $recurso["area"] ?? "-"
+                                        $recurso["ubicacion"] ?? "-"
                                     );
                                     ?>
 
@@ -243,7 +440,7 @@ $resultado = $conexion->query($sql);
 
                                     <?php
                                     echo htmlspecialchars(
-                                        $recurso["ubicacion"] ?? "-"
+                                        $recurso["ubicacion_habitual"] ?? "-"
                                     );
                                     ?>
 
@@ -261,11 +458,11 @@ $resultado = $conexion->query($sql);
 
                                 <td>
 
-                                    <span class="status-badge">
+                                    <span class="situation-badge <?php echo $situacion_clase; ?>">
 
                                         <?php
                                         echo htmlspecialchars(
-                                            $recurso["estado"]
+                                            $recurso["situacion"]
                                         );
                                         ?>
 
@@ -276,11 +473,11 @@ $resultado = $conexion->query($sql);
 
                                 <td>
 
-                                    <span class="situation-badge">
+                                    <span class="status-badge <?php echo $estado_clase; ?>">
 
                                         <?php
                                         echo htmlspecialchars(
-                                            $recurso["situacion"]
+                                            $recurso["estado"]
                                         );
                                         ?>
 
@@ -309,7 +506,7 @@ $resultado = $conexion->query($sql);
                         <tr>
 
                             <td
-                                colspan="9"
+                                colspan="10"
                                 class="empty-state"
                             >
 

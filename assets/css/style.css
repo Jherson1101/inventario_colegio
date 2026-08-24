@@ -174,6 +174,30 @@ body {
     padding: 25px;
 }
 
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 35px;
+}
+
+.mini-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mini-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #f1f5f9;
+    font-size: 14px;
+}
 
 .section-header {
     display: flex;
@@ -373,12 +397,30 @@ body {
     background-color: #1d4ed8;
 }
 
+.btn-secondary {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.btn-secondary:hover {
+    background-color: #e5e7eb;
+}
+
 .btn-small {
     padding: 6px 10px;
 
     background-color: #f3f4f6;
 
     color: #374151;
+}
+
+.btn-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.btn-danger:hover {
+    background-color: #fecaca;
 }
 
 .btn-small:hover {
@@ -402,8 +444,15 @@ body {
     margin-bottom: 20px;
 }
 
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(180px, 1fr));
+    gap: 16px;
+    align-items: end;
+}
+
 .filter-group {
-    max-width: 500px;
+    max-width: 100%;
 }
 
 .filter-group label {
@@ -414,6 +463,13 @@ body {
     font-size: 14px;
 
     font-weight: 600;
+}
+
+.filter-actions {
+    display: flex;
+    align-items: end;
+    gap: 10px;
+    min-height: 42px;
 }
 
 .form-control {
@@ -471,13 +527,62 @@ body {
 
 .status-badge {
     background-color: #ecfdf5;
-
     color: #047857;
 }
 
 .situation-badge {
     background-color: #eff6ff;
+    color: #1d4ed8;
+}
 
+.status-badge.badge-excelente {
+    background-color: #ecfdf5;
+    color: #047857;
+}
+
+.status-badge.badge-bueno {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-badge.badge-regular {
+    background-color: #fef3c7;
+    color: #b45309;
+}
+
+.status-badge.badge-deficiente {
+    background-color: #fef2f2;
+    color: #b91c1c;
+}
+
+.status-badge.badge-malogrado,
+.status-badge.badge-dado-baja {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.situation-badge.badge-disponible {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.situation-badge.badge-prestado {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.situation-badge.badge-dado-baja {
+    background-color: #e5e7eb;
+    color: #374151;
+}
+
+.situation-badge.badge-mantenimiento {
+    background-color: #ede9fe;
+    color: #6d28d9;
+}
+
+.situation-badge.badge-en-uso {
+    background-color: #dbeafe;
     color: #1d4ed8;
 }
 
@@ -502,6 +607,160 @@ body {
     border-radius: 10px;
 
     padding: 25px;
+}
+
+.report-page {
+    min-width: 0;
+}
+
+.report-header {
+    gap: 20px;
+}
+
+.report-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #dbe2ea;
+}
+
+.report-tabs a {
+    padding: 11px 16px;
+    color: #4b5563;
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.report-tabs a:hover,
+.report-tabs a.active {
+    color: #2563eb;
+    border-bottom-color: #2563eb;
+}
+
+.report-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    align-items: end;
+}
+
+.report-table {
+    min-width: 920px;
+}
+
+.report-table td small {
+    display: block;
+    margin-top: 4px;
+}
+
+@media (max-width: 700px) {
+    .report-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .report-tabs {
+        overflow-x: auto;
+    }
+
+    .report-tabs a {
+        white-space: nowrap;
+    }
+
+    .report-filter-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media print {
+    .navbar,
+    .sidebar,
+    .report-tabs,
+    .report-filters,
+    .report-header button {
+        display: none;
+    }
+
+    .main-content {
+        margin: 0;
+        padding: 20px;
+    }
+
+    .report-table {
+        min-width: 0;
+    }
+}
+
+/* Reportes: reglas específicas para conservar la composición de la vista. */
+.report-page .report-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0 0 20px;
+    padding: 4px;
+    background: #e8edf5;
+    border: 1px solid #dbe2ea;
+    border-radius: 8px;
+}
+
+.report-page .report-tabs a {
+    display: block;
+    padding: 10px 15px;
+    color: #4b5563;
+    border: 0;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.report-page .report-tabs a:hover,
+.report-page .report-tabs a.active {
+    background: #ffffff;
+    color: #1d4ed8;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+}
+
+.report-page .report-filter-grid {
+    display: grid;
+    grid-template-columns: minmax(240px, 1.5fr) minmax(180px, 1fr) minmax(180px, 1fr);
+    gap: 16px;
+    align-items: end;
+}
+
+.report-page .report-filters {
+    margin-bottom: 20px;
+}
+
+.report-page .report-table-section {
+    overflow: hidden;
+}
+
+.report-page .report-table {
+    min-width: 900px;
+}
+
+.report-page .report-table td,
+.report-page .report-table th {
+    vertical-align: top;
+}
+
+.report-page .report-table td small {
+    display: block;
+    margin-top: 4px;
+    color: #6b7280;
+}
+
+@media (max-width: 700px) {
+    .report-page .report-tabs {
+        overflow-x: auto;
+    }
+
+    .report-page .report-filter-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 

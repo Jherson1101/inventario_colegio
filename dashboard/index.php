@@ -93,6 +93,41 @@ $malogrados = $resultado->fetch_assoc()["total"];
 
 
 // =====================================================
+// INVENTARIO POR UBICACIÓN
+// =====================================================
+
+$sql_ubicaciones = "
+    SELECT
+        u.nombre AS ubicacion,
+        COALESCE(SUM(r.cantidad), 0) AS total
+    FROM ubicaciones u
+    LEFT JOIN recursos r
+        ON r.ubicacion_id = u.id
+    WHERE u.estado = 'ACTIVO'
+    GROUP BY u.id, u.nombre
+    ORDER BY total DESC, u.nombre ASC
+";
+
+$inventario_ubicaciones = $conexion->query($sql_ubicaciones);
+
+
+// =====================================================
+// INVENTARIO POR SITUACIÓN
+// =====================================================
+
+$sql_situaciones = "
+    SELECT
+        situacion,
+        COALESCE(SUM(cantidad), 0) AS total
+    FROM recursos
+    GROUP BY situacion
+    ORDER BY total DESC, situacion ASC
+";
+
+$inventario_situaciones = $conexion->query($sql_situaciones);
+
+
+// =====================================================
 // ÚLTIMOS MOVIMIENTOS
 // =====================================================
 
@@ -246,6 +281,104 @@ $movimientos = $conexion->query($sql_movimientos);
             <div class="card-description">
                 Recursos malogrados
             </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =============================================
+         INVENTARIO POR UBICACIÓN Y SITUACIÓN
+         ============================================= -->
+
+    <section class="dashboard-grid">
+
+        <div class="dashboard-section">
+
+            <div class="section-header">
+
+                <h2>
+                    Inventario por ubicación
+                </h2>
+
+            </div>
+
+            <?php if ($inventario_ubicaciones && $inventario_ubicaciones->num_rows > 0): ?>
+
+                <div class="mini-list">
+
+                    <?php while ($fila = $inventario_ubicaciones->fetch_assoc()): ?>
+
+                        <div class="mini-row">
+
+                            <span>
+                                <?php echo htmlspecialchars($fila["ubicacion"] ?? "Sin ubicación"); ?>
+                            </span>
+
+                            <strong>
+                                <?php echo (int) $fila["total"]; ?>
+                            </strong>
+
+                        </div>
+
+                    <?php endwhile; ?>
+
+                </div>
+
+            <?php else: ?>
+
+                <div class="empty-state">
+                    <p>
+                        No hay información de ubicaciones.
+                    </p>
+                </div>
+
+            <?php endif; ?>
+
+        </div>
+
+
+        <div class="dashboard-section">
+
+            <div class="section-header">
+
+                <h2>
+                    Inventario por situación
+                </h2>
+
+            </div>
+
+            <?php if ($inventario_situaciones && $inventario_situaciones->num_rows > 0): ?>
+
+                <div class="mini-list">
+
+                    <?php while ($fila = $inventario_situaciones->fetch_assoc()): ?>
+
+                        <div class="mini-row">
+
+                            <span>
+                                <?php echo htmlspecialchars($fila["situacion"] ?? "SIN DATO"); ?>
+                            </span>
+
+                            <strong>
+                                <?php echo (int) $fila["total"]; ?>
+                            </strong>
+
+                        </div>
+
+                    <?php endwhile; ?>
+
+                </div>
+
+            <?php else: ?>
+
+                <div class="empty-state">
+                    <p>
+                        No hay información de situaciones.
+                    </p>
+                </div>
+
+            <?php endif; ?>
 
         </div>
 

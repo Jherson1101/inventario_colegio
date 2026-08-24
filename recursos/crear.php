@@ -25,7 +25,7 @@ $color = "";
 // Ubicación
 $area_id = "";
 $ubicacion_id = "";
-$ubicacion_habitual_id = "";
+$ubicacion_habitual_id = null;
 
 // Control
 $situacion = "DISPONIBLE";
@@ -177,6 +177,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $ubicacion_id = !empty($_POST["ubicacion_id"])
         ? (int)$_POST["ubicacion_id"]
         : null;
+
+    $ubicacion_habitual_id = $ubicacion_id;
 
 
     // =================================================
